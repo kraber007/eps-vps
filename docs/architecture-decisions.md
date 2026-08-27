@@ -97,6 +97,8 @@ Rule semantics, relay behavior, hysteresis/deadband, reset values, and rule-edit
 - Build the Node.js bridge to ingest telemetry, update `relay_state` when relays exist, and update `slots.last_seen_at`.
 - Scaffold the Next.js application with Prisma models matching the SQL schema.
 - Add Auth.js login and registration.
+- The initial Next.js admin console lives in `web/`; it supports admin-only creation of test users and slots/devices.
+- `users.role` is currently limited to `admin` and `user`; all admin API routes enforce the role server-side.
 - Add slot registration and replacement flows, including safe handling of reused `chip_id` values.
 - Define ownership checks for every user-facing slot, reading, and future rule operation.
 
