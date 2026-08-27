@@ -45,7 +45,7 @@ CREATE TABLE slots (
     chip_id             TEXT UNIQUE,             -- current hardware's factory chip id (bootstrap only)
     mqtt_password_hash  TEXT,                    -- bcrypt hash; id doubles as the MQTT username
     status              TEXT NOT NULL DEFAULT 'awaiting_hardware'
-                        CHECK (status IN ('awaiting_hardware', 'active', 'repair', 'retired')),
+                        CHECK (status IN ('awaiting_hardware', 'active', 'repair', 'retired')), --remember to make chip_id as null whenever the status is not active
     firmware_version    TEXT,
     last_seen_at        TIMESTAMPTZ,
     created_at          TIMESTAMPTZ NOT NULL DEFAULT now()

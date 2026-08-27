@@ -16,7 +16,7 @@ services:
       - ./db/01_init.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
       - ./db/02_grant_emqx_permissions.sh:/docker-entrypoint-initdb.d/02_grant_emqx_permissions.sh:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -31,11 +31,6 @@ services:
       - "8083:8083"     # MQTT over WebSocket (handy for browser-based debugging)
       - "18083:18083"   # Dashboard - put behind a reverse proxy / firewall in prod
     environment:
-      EMQX_PG_HOST: timescaledb
-      EMQX_PG_PORT: 5432
-      EMQX_PG_DATABASE: ${POSTGRES_DB}
-      EMQX_PG_USERNAME: ${EMQX_PG_USERNAME}
-      EMQX_PG_PASSWORD: ${EMQX_PG_PASSWORD}
       EMQX_AUTHENTICATION__1__SERVER: "timescaledb:5432"
       EMQX_AUTHENTICATION__1__DATABASE: ${POSTGRES_DB}
       EMQX_AUTHENTICATION__1__USERNAME: ${EMQX_PG_USERNAME}
