@@ -1,0 +1,91 @@
+actions {
+  timescale {
+    my_timescale_action_name {
+      connector = test_name
+      created_at = 1788460296417
+      description = "my timescale action description"
+      enable = true
+      last_modified_at = 1788460296417
+      parameters {
+        sql = """~
+          INSERT INTO telemetry (
+              time,
+              slot_id,
+              schema_version,
+              temperature_c,
+              humidity_p,
+              co2_ppm,
+              light_lux,
+              relay_state_mask
+          )
+          VALUES (
+              to_timestamp(${time} / 1000.0),
+              ${slot_id},
+              ${schema_version},
+              ${temperature_c},
+              ${humidity_p},
+              ${co2_ppm},
+              ${light_lux},
+              ${relay_state_mask}
+          )~"""
+      }
+      resource_opts {
+        batch_size = 1
+        health_check_interval = "15s"
+        inflight_window = 100
+        max_buffer_bytes = "256MB"
+        query_mode = async
+        request_ttl = "45s"
+        worker_pool_size = 16
+      }
+    }
+  }
+}
+connectors {
+  timescale {
+    test_name {
+      database = my_pg_db
+      description = "test desciption"
+      disable_prepared_statements = false
+      password = password
+      pool_size = 8
+      resource_opts {
+        health_check_interval = "15s"
+        start_timeout = "5s"
+      }
+      server = timescaledb
+      ssl {enable = false, verify = verify_peer}
+      username = my_pg_user
+    }
+  }
+}
+log {
+  console {}
+  file {}
+}
+rule_engine {
+  ignore_sys_message = true
+  jq_function_default_timeout = "10s"
+  rules {
+    rule_telemetry {
+      actions = [
+        "timescale:my_timescale_action_name"
+      ]
+      description = ""
+      enable = true
+      metadata {created_at = 1788460327650, last_modified_at = 1788460327650}
+      sql = """~
+        SELECT
+            payload.timestamp AS time,
+            payload.schema_version AS schema_version,
+            payload.temperature_c AS temperature_c,
+            payload.humidity_p AS humidity_p,
+            payload.co2_ppm AS co2_ppm,
+            payload.light_lux AS light_lux,
+            payload.relay_state_mask AS relay_state_mask,
+            nth(2, tokens(topic, '/')) AS slot_id
+        FROM
+            "slot/+/telemetry"~"""
+    }
+  }
+}

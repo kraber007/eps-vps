@@ -93,29 +93,20 @@ CREATE TABLE rules (
 CREATE INDEX idx_rules_slot_id ON rules(slot_id);
 CREATE INDEX idx_rules_user_id ON rules(user_id);
 
--- ------------------------------------------------------------
--- Relay state
--- ------------------------------------------------------------
-CREATE TABLE relay_state (
-    slot_id    UUID NOT NULL REFERENCES slots(id) ON DELETE CASCADE,
-    user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    relay_id   TEXT NOT NULL,
-    state      BOOLEAN NOT NULL,
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    PRIMARY KEY (slot_id, relay_id)
-);
+CREATE TABLE telemetry (
+    time              TIMESTAMPTZ NOT NULL,
+    slot_id           UUID NOT NULL REFERENCES slots(id),
+    user_id           UUID NOT NULL REFERENCES users(id),
 
-CREATE INDEX idx_relay_state_user_id ON relay_state(user_id);
+    schema_version    SMALLINT NOT NULL,
 
--- ------------------------------------------------------------
--- Readings (hypertable)
--- ------------------------------------------------------------
-CREATE TABLE readings (
-    time        TIMESTAMPTZ NOT NULL DEFAULT now(),
-    slot_id     UUID NOT NULL REFERENCES slots(id),
-    user_id     UUID NOT NULL REFERENCES users(id),
-    sensor_type TEXT NOT NULL,
-    value       NUMERIC NOT NULL
+    temperature_c     REAL,
+    humidity_p        REAL,
+    co2_ppm           REAL,
+    light_lux         REAL,
+
+    relay_state_mask  SMALLINT NOT NULL DEFAULT 0
+
 ) WITH (
     tsdb.hypertable,
     tsdb.partition_column = 'time',
@@ -123,8 +114,11 @@ CREATE TABLE readings (
     tsdb.orderby = 'time DESC'
 );
 
-CREATE INDEX idx_readings_slot_time ON readings(slot_id, time DESC);
-CREATE INDEX idx_readings_user_time ON readings(user_id, time DESC);
+CREATE INDEX idx_telemetry_slot_time
+    ON telemetry(slot_id, time DESC);
+
+CREATE INDEX idx_telemetry_user_time
+    ON telemetry(user_id, time DESC);
 
 -- ------------------------------------------------------------
 -- EMQX auth role

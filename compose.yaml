@@ -24,7 +24,7 @@ services:
       - mushroom-net
 
   emqx:
-    image: emqx/emqx:5.8
+    image: emqx/emqx-enterprise:5.8
     restart: unless-stopped
     ports:
       - "1883:1883"     # MQTT
@@ -37,6 +37,7 @@ services:
       EMQX_AUTHENTICATION__1__PASSWORD: ${EMQX_PG_PASSWORD}
     volumes:
       - ./emqx/emqx.conf:/opt/emqx/etc/emqx.conf:ro
+      - ./emqx/base.hocon:/opt/emqx/etc/base.hocon:ro
       - ./emqx/acl.conf:/opt/emqx/etc/acl.conf:ro
       - emqx-data:/opt/emqx/data
     depends_on:
