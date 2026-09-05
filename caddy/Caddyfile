@@ -1,0 +1,6 @@
+emqx.mycoai.bandhuja.com {
+    reverse_proxy emqx:18083
+}
+#emqx.mycoai.localhost {
+#    reverse_proxy emqx:18083
+#}

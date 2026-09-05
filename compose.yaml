@@ -51,6 +51,21 @@ services:
     networks:
       - mushroom-net
 
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - emqx
+    networks:
+      - mushroom-net
+
 networks:
   mushroom-net:
     driver: bridge
@@ -58,3 +73,5 @@ networks:
 volumes:
   emqx-data:
   timescale-data:
+  caddy_data:
+  caddy_config:
