@@ -24,10 +24,11 @@ services:
       - mushroom-net
 
   emqx:
-    image: emqx/emqx-enterprise:5.8
+    image: emqx/emqx-enterprise:6.3
     restart: unless-stopped
     ports:
       - "1883:1883"     # MQTT
+      - "8883:8883"     # MQTT
       - "8083:8083"     # MQTT over WebSocket (handy for browser-based debugging)
       - "18083:18083"   # Dashboard - put behind a reverse proxy / firewall in prod
     environment:
@@ -40,6 +41,7 @@ services:
       - ./emqx/base.hocon:/opt/emqx/etc/base.hocon:ro
       - ./emqx/acl.conf:/opt/emqx/etc/acl.conf:ro
       - emqx-data:/opt/emqx/data
+      - letsencrypt:/etc/letsencrypt:ro
     depends_on:
       timescaledb:
         condition: service_healthy
@@ -51,18 +53,32 @@ services:
     networks:
       - mushroom-net
 
-  caddy:
-    image: caddy:2
+  nginx:
+    image: nginx:1.29
     restart: unless-stopped
     ports:
       - "80:80"
       - "443:443"
     volumes:
-      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
-      - caddy_data:/data
-      - caddy_config:/config
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/entrypoint.sh:/entrypoint.sh:ro
+      - letsencrypt:/etc/letsencrypt:ro
+    entrypoint: ["/bin/sh", "/entrypoint.sh"]
     depends_on:
       - emqx
+    networks:
+      - mushroom-net
+
+
+  certbot:
+    image: certbot/dns-cloudflare:v5.8.0
+    restart: unless-stopped
+    environment:
+      CLOUDFLARE_API_TOKEN: ${CLOUDFLARE_API_TOKEN}
+    volumes:
+      - letsencrypt:/etc/letsencrypt
+      - ./certbot/entrypoint.sh:/entrypoint.sh:ro
+    entrypoint: ["/bin/sh", "/entrypoint.sh"]
     networks:
       - mushroom-net
 
@@ -73,5 +89,4 @@ networks:
 volumes:
   emqx-data:
   timescale-data:
-  caddy_data:
-  caddy_config:
+  letsencrypt:
