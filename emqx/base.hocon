@@ -66,6 +66,7 @@ log {
 rule_engine {
   ignore_sys_message = true
   jq_function_default_timeout = "10s"
+  limit_selects_in_namespace = true
   rules {
     rule_telemetry {
       actions = [
@@ -73,17 +74,18 @@ rule_engine {
       ]
       description = ""
       enable = true
-      metadata {created_at = 1788460327650, last_modified_at = 1788460327650}
+      metadata {last_modified_at = 1788794070042}
+      name = ""
       sql = """~
         SELECT
-            payload.timestamp AS time,
+            payload.ts AS time,
             payload.schema_version AS schema_version,
-            payload.temperature_c AS temperature_c,
-            payload.humidity_p AS humidity_p,
-            payload.co2_ppm AS co2_ppm,
-            payload.light_lux AS light_lux,
-            payload.relay_state_mask AS relay_state_mask,
-            nth(2, tokens(topic, '/')) AS slot_id
+            payload.sensors.temperature_c AS temperature_c,
+            payload.sensors.humidity_p AS humidity_p,
+            payload.sensors.co2_ppm AS co2_ppm,
+            payload.sensors.light_lux AS light_lux,
+            payload.relay_state_mask AS relay_state_mask, 
+            nth(2, tokens(topic, '/')) AS slot_id 
         FROM
             "slot/+/telemetry"~"""
     }

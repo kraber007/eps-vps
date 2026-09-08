@@ -96,7 +96,6 @@ CREATE INDEX idx_rules_user_id ON rules(user_id);
 CREATE TABLE telemetry (
     time              TIMESTAMPTZ NOT NULL,
     slot_id           UUID NOT NULL REFERENCES slots(id),
-    user_id           UUID NOT NULL REFERENCES users(id),
 
     schema_version    SMALLINT NOT NULL,
 
@@ -116,9 +115,6 @@ CREATE TABLE telemetry (
 
 CREATE INDEX idx_telemetry_slot_time
     ON telemetry(slot_id, time DESC);
-
-CREATE INDEX idx_telemetry_user_time
-    ON telemetry(user_id, time DESC);
 
 -- ------------------------------------------------------------
 -- EMQX auth role
