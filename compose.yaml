@@ -26,10 +26,12 @@ services:
   emqx:
     image: emqx/emqx-enterprise:6.3
     restart: unless-stopped
+    expose:
+      - "1883"
     ports:
-      - "1883:1883"     # MQTT
-      - "8883:8883"     # MQTT
-      - "8083:8083"     # MQTT over WebSocket (handy for browser-based debugging)
+      #- "1883:1883"     # MQTT
+      #- "8883:8883"     # MQTT
+      #- "8083:8083"     # MQTT over WebSocket (handy for browser-based debugging)
       - "18083:18083"   # Dashboard - put behind a reverse proxy / firewall in prod
     environment:
       EMQX_AUTHENTICATION__1__SERVER: "timescaledb:5432"
@@ -41,7 +43,6 @@ services:
       - ./emqx/base.hocon:/opt/emqx/etc/base.hocon:ro
       - ./emqx/acl.conf:/opt/emqx/etc/acl.conf:ro
       - emqx-data:/opt/emqx/data
-      - letsencrypt:/etc/letsencrypt:ro
     depends_on:
       timescaledb:
         condition: service_healthy
@@ -53,32 +54,19 @@ services:
     networks:
       - mushroom-net
 
-  nginx:
-    image: nginx:1.29
+  caddy:
+    build:
+      context: ./caddy
+      dockerfile: Dockerfile
     restart: unless-stopped
     ports:
       - "80:80"
       - "443:443"
+      - "8883:8883"
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/entrypoint.sh:/entrypoint.sh:ro
-      - letsencrypt:/etc/letsencrypt:ro
-    entrypoint: ["/bin/sh", "/entrypoint.sh"]
-    depends_on:
-      - emqx
-    networks:
-      - mushroom-net
-
-
-  certbot:
-    image: certbot/dns-cloudflare:v5.8.0
-    restart: unless-stopped
-    environment:
-      CLOUDFLARE_API_TOKEN: ${CLOUDFLARE_API_TOKEN}
-    volumes:
-      - letsencrypt:/etc/letsencrypt
-      - ./certbot/entrypoint.sh:/entrypoint.sh:ro
-    entrypoint: ["/bin/sh", "/entrypoint.sh"]
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
     networks:
       - mushroom-net
 
@@ -103,7 +91,8 @@ networks:
     driver: bridge
 
 volumes:
+  caddy-data:
+  caddy-config:
   emqx-data:
   timescale-data:
-  letsencrypt:
   grafana-data:

@@ -1,6 +1,25 @@
-emqx.mycoai.bandhuja.com {
-    reverse_proxy emqx:18083
+{
+    layer4 {
+        :8883 {
+            @mqtt tls sni mqtt-mycoai.bandhuja.com
+
+            route @mqtt {
+                tls
+
+                proxy emqx:1883
+            }
+        }
+    }
 }
-#emqx.mycoai.localhost {
-#    reverse_proxy emqx:18083
+
+#mycoai.bandhuja.com {
+#    reverse_proxy app:3000
 #}
+
+grafana-mycoai.bandhuja.com {
+    reverse_proxy grafana:3000
+}
+
+mqtt-mycoai.bandhuja.com {
+    abort
+}
