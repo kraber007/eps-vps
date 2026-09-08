@@ -10,6 +10,7 @@ EMAIL="help@bandhuja.com"
 
 HOSTS="
 mycoai.bandhuja.com
+grafana-mycoai.bandhuja.com
 mqtt-mycoai.bandhuja.com
 "
 
